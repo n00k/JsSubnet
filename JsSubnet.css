@@ -1,0 +1,9 @@
+div.JsSubnet div {
+	border: 1px solid black;
+	width: 100%;
+}
+
+div.JsSubnet_label {
+	text-transform: capitalize;
+}
+
