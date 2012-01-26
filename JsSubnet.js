@@ -331,7 +331,6 @@ JsSubnet.prototype.getIP = function ()
 		{
 			/* IP address/Mask */
 			ip = ipmat[1];
-			console.log(ipmat.slice(2).join('.'));
 			mask = this.mask2bits(ipmat.slice(2).join('.'));
 
 		}
@@ -453,8 +452,7 @@ JsSubnet.prototype.isHTML = function (obj)
 	return res;
 }
 
-JsSubnet.prototype.makeElement = function (tag, id, cssclass, attrs)
-{
+JsSubnet.prototype.makeElement = function (tag, id, cssclass, attrs) {
 	var newel = document.createElement(tag);
 	newel.id = id;
 	if (cssclass != null) newel.className = cssclass;
@@ -482,8 +480,26 @@ JsSubnet.prototype.removePanel = function(el)
 	}
 	el.parentNode.removeChild(el);
 	if (/JsSubnet/.exec(el.id)) {
-	    console.log("Remove " + el.id);
 	    el = null;
+	}
+}
+
+JsSubnet.prototype.togglePanel = function (el,cls)
+{
+	if ('className' in this.panel) {
+		var clsregex = new RegExp("(^|\\s)" + cls + "(\\s|$)");
+		console.log(this.panel.className);
+		console.log(clsregex);
+		console.log(clsregex.exec(this.panel.className));
+		if (clsregex.exec(this.panel.className)) {
+			console.log("remove it");
+			this.panel.className = this.panel.className.replace(clsregex,"");
+			if(el) el.innerHTML = "-";
+		} else {
+			console.log("add it");
+			this.panel.className = this.panel.className + " " + cls;
+			if (el) el.innerHTML = "+";
+		}	
 	}
 }
 
@@ -492,12 +508,19 @@ JsSubnet.prototype.buildPanel = function (options)
 	if (this.panel == null) {
 		var thisinst = this;
 		this.panel = this.makeElement('div','JsSubnet_panel','JsSubnet');
+
 		if (typeof options == "object") {
 			if (options['width']) this.panel.style.width = options['width'];
 			if (options['height']) this.panel.style.height = options['height'];
 			if (options['top']) this.panel.style.top = options['top'];
 			if (options['left']) this.panel.style.left = options['left'];
 		}
+
+		var minbtn = this.makeElement('button','JsSubnet_minmax','JsSubnet',{type:'button', innerHTML:'-',onclick:function () {thisinst.togglePanel(this,'collapse');}});
+		this.panel.appendChild(minbtn);
+		var title = this.makeElement('span','JsSubnet_title','JsSubnet',{innerHTML:"JsSubnet Calculator"});
+		this.panel.appendChild(title);
+
 		if (this.objlist['ip'] == null || this.objlist['mask'] == null) {
 			var inputs = this.makeElement('div','JsSubnet_inputs','JsSubnet');
 
@@ -517,16 +540,19 @@ JsSubnet.prototype.buildPanel = function (options)
 				inputs.appendChild(this.objlist['mask']);
 			}
 			this.panel.appendChild(inputs);
-			console.log(this.objlist);
+
+			var outputs = this.makeElement('div','JsSubnet_outputs','JsSubnet');
+
 			for (var item in this.objlist) {
 				if (item != 'ip' && item != 'mask' && this.objlist[item] == null) {
 					if (this.isHTML(this.objlist[item] = this.makeElement('span','JsSubnet_output_'+item,'JsSubnet'))) {
 						var dv = this.makeElement('div','JsSubnet_output_' + item + '_lbl','JsSubnet JsSubnet_label',{innerHTML:this.objlabels[item] } );
 						dv.appendChild(this.objlist[item]);
-						this.panel.appendChild(dv);
+						outputs.appendChild(dv);
 					}
 				}
 			}
+			this.panel.appendChild(outputs);
 		}
 		document.getElementsByTagName('body')[0].appendChild(this.panel);
 		document.getElementsByTagName('head')[0].appendChild(this.makeElement('link','JsSubnet_link',null,{type:'text/css',href:'JsSubnet.css',rel:'stylesheet'}));

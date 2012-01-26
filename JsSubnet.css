@@ -1,3 +1,12 @@
+div#JsSubnet_panel {
+	border: 2px solid black;
+	padding: 1px;
+}
+
+div#JsSubnet_panel.collapse div {
+	display: none;
+}
+
 div.JsSubnet div {
 	border: 1px solid black;
 	width: 100%;
