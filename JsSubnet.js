@@ -11,8 +11,8 @@ function JsSubnet() {
 		last: null
 	};
 	this.objlabels = {
-		ip: 'IP Address: ',
-		mask: 'Subnet Mask: ',
+		ip: 'IP: ',
+		mask: 'Mask: ',
 		net: 'Network Address: ',
 		bits: 'Network Bits: /',
 		broadcast: 'Broadcast Address: ',
@@ -445,7 +445,7 @@ JsSubnet.prototype.updateSubnet = function ()
 
 JsSubnet.prototype.isHTML = function (obj) 
 {
-	var res = false;
+     var res = false;
 	if (mat = obj.constructor.toString().match(/HTML([a-zA-Z0-9]*)Element/)) {
 		res = mat[1];
 	}
@@ -505,39 +505,36 @@ JsSubnet.prototype.togglePanel = function (el,cls)
 
 JsSubnet.prototype.buildPanel = function (options)
 {    
+	if (!options) options = {};
 	if (this.panel == null) {
 		var thisinst = this;
-		this.panel = this.makeElement('div','JsSubnet_panel','JsSubnet');
+		this.panel = new JsPanel();
 
-		if (typeof options == "object") {
-			if (options['width']) this.panel.style.width = options['width'];
-			if (options['height']) this.panel.style.height = options['height'];
-			if (options['top']) this.panel.style.top = options['top'];
-			if (options['left']) this.panel.style.left = options['left'];
-		}
 
-		var minbtn = this.makeElement('button','JsSubnet_minmax','JsSubnet',{type:'button', innerHTML:'-',onclick:function () {thisinst.togglePanel(this,'collapse');}});
-		this.panel.appendChild(minbtn);
-		var title = this.makeElement('span','JsSubnet_title','JsSubnet',{innerHTML:"JsSubnet Calculator"});
-		this.panel.appendChild(title);
+
+		this.panel.buildPanel(options['left'], options['top'], options['height'], options['width']);
 
 		if (this.objlist['ip'] == null || this.objlist['mask'] == null) {
 			var inputs = this.makeElement('div','JsSubnet_inputs','JsSubnet');
 
 			if (this.objlist['ip'] == null) {
+				var dv = this.makeElement('div','JsSubnet_output_ip_lbl','JsSubnet JsSubnet_label',{innerHTML:this.objlabels['ip'] } );
 				this.objlist['ip'] = this.makeElement('input','JsSubnet_input_ip','JsSubnet',{type:'text',maxlength:19,onchange:function() {thisinst.updateSubnet();}});
-				inputs.appendChild(this.objlist['ip']);
+				dv.appendChild(this.objlist['ip']);
+				inputs.appendChild(dv);
 			}
 
-			inputs.appendChild(document.createElement('br'));
+//			inputs.appendChild(document.createElement('br'));
 
 			if (this.objlist['mask'] == null) {
+				var dv = this.makeElement('div','JsSubnet_output_mask_lbl','JsSubnet JsSubnet_label',{innerHTML:this.objlabels['mask'] } );
 				this.objlist['mask'] = this.makeElement('select','JsSubnet_input_mask','JsSubnet',{onchange:function() {thisinst.updateSubnet();}});
 				for (var i=32; i>=0; i--) { 
 					var maskopt = this.makeElement('option','JsSubnet_input_mask_' + i,'JsSubnet',{value:i,innerHTML:this.dec2ip(this.mask2dec(i))});
 					this.objlist['mask'].appendChild(maskopt);
 				}
-				inputs.appendChild(this.objlist['mask']);
+				dv.appendChild(this.objlist['mask']);
+				inputs.appendChild(dv); 
 			}
 			this.panel.appendChild(inputs);
 
@@ -554,8 +551,34 @@ JsSubnet.prototype.buildPanel = function (options)
 			}
 			this.panel.appendChild(outputs);
 		}
-		document.getElementsByTagName('body')[0].appendChild(this.panel);
-		document.getElementsByTagName('head')[0].appendChild(this.makeElement('link','JsSubnet_link',null,{type:'text/css',href:'JsSubnet.css',rel:'stylesheet'}));
+		//document.getElementsByTagName('head')[0].appendChild(this.makeElement('link','JsSubnet_link',null,{type:'text/css',href:'JsSubnet.css',rel:'stylesheet'}));
 	}
 }
 
+//pass through a couple of functions for convenience
+//
+JsSubnet.prototype.show = function ()
+{
+ return this.panel.show.apply(this.panel, arguments);
+}
+
+JsSubnet.prototype.hide = function ()
+{
+ return this.panel.hide.apply(this.panel, arguments);
+}
+ 
+JsSubnet.prototype.minimize = function ()
+{
+ return this.panel.minimize.apply(this.panel, arguments);
+}
+   
+JsSubnet.prototype.maximize = function ()
+{
+ return this.panel.maximize.apply(this.panel, arguments);
+}
+
+JsSubnet.prototype.setTheme = function ()
+{
+ return this.panel.setTheme.apply(this.panel, arguments);
+}
+ 

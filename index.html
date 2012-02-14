@@ -1,12 +1,22 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html>
 	<head>
 		<title>JsSubnet Test</title>
+		<script type='text/javascript' src='JsPanel.js'></script>
 		<script type='text/javascript' src='JsSubnet.js'></script>
 	</head>
 	<body>
+		<!--<div id='debugout'></div> -->
+		<button type='button' onclick="sub.setTheme('aqua');">Aqua</button>
+		<button type='button' onclick="sub.setTheme('blue');">Blue</button>
+		<button type='button' onclick="sub.setTheme('greenback');">Green</button>
+		<button type='button' onclick="sub.setTheme('maroon');">Maroon</button>
+		<button type='button' onclick="sub.setTheme('purple');">Purple</button>
+		<button type='button' onclick='sub.show();'>Show Panel</button>
 		<script type='text/javascript'>
 			var sub = new JsSubnet();
-			sub.buildPanel({width:'300px',height:'auto',left:'300px',top:0});
+			sub.buildPanel({width:'auto',height:'auto',left:'300px',top:0});
+			sub.show();
 		</script>
 	</body>
 </html>
