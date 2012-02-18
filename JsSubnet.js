@@ -46,6 +46,7 @@ JsSubnet.prototype.setObj = function (id,obj)
 	if (this.objlist[id] == null) {
 		this.objlist[id] = { value: null };
 	}
+	return this.objlist[id];
 
 }
 
@@ -510,8 +511,6 @@ JsSubnet.prototype.buildPanel = function (options)
 		var thisinst = this;
 		this.panel = new JsPanel();
 
-
-
 		this.panel.buildPanel(options['left'], options['top'], options['height'], options['width']);
 
 		if (this.objlist['ip'] == null || this.objlist['mask'] == null) {
@@ -519,16 +518,13 @@ JsSubnet.prototype.buildPanel = function (options)
 
 			if (this.objlist['ip'] == null) {
 				var dv = this.makeElement('div','JsSubnet_output_ip_lbl','JsSubnet JsSubnet_label',{innerHTML:this.objlabels['ip'] } );
-				this.objlist['ip'] = this.makeElement('input','JsSubnet_input_ip','JsSubnet',{type:'text',maxlength:19,onchange:function() {thisinst.updateSubnet();}});
+				this.objlist['ip'] = this.makeElement('input','JsSubnet_input_ip','JsSubnet',{type:'text',maxlength:19});
 				dv.appendChild(this.objlist['ip']);
 				inputs.appendChild(dv);
 			}
-
-//			inputs.appendChild(document.createElement('br'));
-
 			if (this.objlist['mask'] == null) {
 				var dv = this.makeElement('div','JsSubnet_output_mask_lbl','JsSubnet JsSubnet_label',{innerHTML:this.objlabels['mask'] } );
-				this.objlist['mask'] = this.makeElement('select','JsSubnet_input_mask','JsSubnet',{onchange:function() {thisinst.updateSubnet();}});
+				this.objlist['mask'] = this.makeElement('select','JsSubnet_input_mask','JsSubnet');
 				for (var i=32; i>=0; i--) { 
 					var maskopt = this.makeElement('option','JsSubnet_input_mask_' + i,'JsSubnet',{value:i,innerHTML:this.dec2ip(this.mask2dec(i))});
 					this.objlist['mask'].appendChild(maskopt);
@@ -537,6 +533,9 @@ JsSubnet.prototype.buildPanel = function (options)
 				inputs.appendChild(dv); 
 			}
 			this.panel.appendChild(inputs);
+		}
+	if (this.isHTML(this.objlist['ip'])) this.panel._addEventListener(this.objlist['ip'],'change',function() {thisinst.updateSubnet();});
+	if (this.isHTML(this.objlist['mask'])) this.panel._addEventListener(this.objlist['mask'],'change',function() {thisinst.updateSubnet();});
 
 			var outputs = this.makeElement('div','JsSubnet_outputs','JsSubnet');
 
@@ -550,35 +549,29 @@ JsSubnet.prototype.buildPanel = function (options)
 				}
 			}
 			this.panel.appendChild(outputs);
-		}
 		//document.getElementsByTagName('head')[0].appendChild(this.makeElement('link','JsSubnet_link',null,{type:'text/css',href:'JsSubnet.css',rel:'stylesheet'}));
 	}
 }
 
-//pass through a couple of functions for convenience
+
+//IE doesn't support __noSuchMethod__ so one at a time
+JsSubnet.prototype.getUnique = function() { return this.panel.getUnique.apply(this.panel,arguments); }
+JsSubnet.prototype.resize = function() { return this.panel.resize.apply(this.panel,arguments); }
+JsSubnet.prototype.minimize = function() { return this.panel.minimize.apply(this.panel,arguments); }
+JsSubnet.prototype.maximize = function() { return this.panel.maximize.apply(this.panel,arguments); }
+JsSubnet.prototype.moveBy = function() { return this.panel.moveBy.apply(this.panel,arguments); }
+JsSubnet.prototype._addElement = function() { return this.panel._addElement.apply(this.panel,arguments); }
+JsSubnet.prototype.addElement = function() { return this.panel.addElement.apply(this.panel,arguments); }
+JsSubnet.prototype.appendChild = function() { return this.panel.appendChild.apply(this.panel,arguments); }
+JsSubnet.prototype.removeLink = function() { return this.panel.removeLink.apply(this.panel,arguments); }
+JsSubnet.prototype.setTheme = function() { return this.panel.setTheme.apply(this.panel,arguments); }
+JsSubnet.prototype.setTitle = function() { return this.panel.setTitle.apply(this.panel,arguments); }
+JsSubnet.prototype.show = function() { return this.panel.show.apply(this.panel,arguments); }
+JsSubnet.prototype.hide = function() { return this.panel.hide.apply(this.panel,arguments); }
+//pass through any other functions for convenience, if it exists in the panel
 //
-JsSubnet.prototype.show = function ()
-{
- return this.panel.show.apply(this.panel, arguments);
-}
-
-JsSubnet.prototype.hide = function ()
-{
- return this.panel.hide.apply(this.panel, arguments);
-}
- 
-JsSubnet.prototype.minimize = function ()
-{
- return this.panel.minimize.apply(this.panel, arguments);
-}
-   
-JsSubnet.prototype.maximize = function ()
-{
- return this.panel.maximize.apply(this.panel, arguments);
-}
-
-JsSubnet.prototype.setTheme = function ()
-{
- return this.panel.setTheme.apply(this.panel, arguments);
-}
- 
+//JsSubnet.prototype.__noSuchMethod__ = function(fname,args)
+//{
+//	if (typeof this.panel[fname] !== "function") throw "NoMethodError: "+fname+" is not defined." 
+//	return this.panel[fname].apply(this.panel,args);
+//}
