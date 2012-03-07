@@ -1,4 +1,15 @@
-function JsSubnet() {
+//We need the JsPanel "class", so try to load it if it's not here
+if (typeof JsPanel == "undefined") {
+	var head = document.getElementsByTagName('head')[0];
+	var script = document.createElement('script');
+	script.type = 'text/javascript';
+	script.src = 'JsPanel.js';
+	head.appendChild(script);
+}
+
+// While that's loading, define our "class"
+function JsSubnet(options) {
+	this.options = options;
 	this.objlist = {
 		ip: null,
 		mask: null,
@@ -8,18 +19,24 @@ function JsSubnet() {
 		ipcount: null,
 		usable: null,
 		first: null,
-		last: null
+		last: null,
+		cidrstartip: null,
+		cidrendip: null,
+		cidrlist: null
 	};
 	this.objlabels = {
 		ip: 'IP: ',
 		mask: 'Mask: ',
-		net: 'Network Address: ',
+		net: 'Routing Prefix: ',
 		bits: 'Network Bits: /',
 		broadcast: 'Broadcast Address: ',
 		ipcount: 'IP Addresses: ',
 		usable: 'Usable IP Addresses: ',
 		first: 'First Usable IP: ',
-		last: 'Last Usable IP: ' 
+		last: 'Last Usable IP: ',
+		cidrstartip: 'Start IP: ',
+		cidrendip: 'End IP: ',
+		cidrlist: 'CIDR Networks: '
 	};
 	this.updatelock = false;
 	this.ipaddress = "";
@@ -281,8 +298,11 @@ JsSubnet.prototype.mask2dec = function (bits)
 JsSubnet.prototype.getNetDec = function (ip,mask)
 {
 	if (ip == undefined && mask == undefined) {
-		var ip = this.ipaddress;
-		var mask = this.maskbits;
+		ip = this.ipaddress;
+		mask = this.maskbits;
+	}
+	if (typeof ip == "string") {
+		ip = this.ip2dec(ip);
 	}
 	if (typeof mask != "number") {
 		try {
@@ -292,10 +312,10 @@ JsSubnet.prototype.getNetDec = function (ip,mask)
 			throw e;
 		}
 	}
-	if (typeof ip != "string") throw "getNetDec(" + [].slice.call(arguments).join(',') + "): IP not set";
+	if (typeof ip != "number") throw "getNetDec(" + [].slice.call(arguments).join(',') + "): IP not set";
 	if ( this.maskbits < 0 || this.maskbits > 32) throw "getNet(" + [].slice.call(arguments).join(',') + "): Invalid netmask" + mask;
 	try {
-		return this.and(this.ip2dec(ip),this.mask2dec(mask));
+		return this.and(ip,this.mask2dec(mask));
 	} catch (e) {
 		if (typeof e == "string") e = "getNetDec(" + [].slice.call(arguments).join(',') + "): " + e;
 		throw e;
@@ -354,17 +374,15 @@ JsSubnet.prototype.getIP = function ()
 
 JsSubnet.prototype.getBroadcastDec = function (netip,netmask)
 {
-	if (netip == undefined && netmask == undefined) {
-		var netip = this.ipaddress;
-		var netmask = this.maskbits;
-	}
+	if (netmask == undefined) netmask = this.maskbits;
+	if (netip == undefined) netip = this.ipaddress;
 	try {
+		if (typeof netip != 'number') netip = this.ip2dec(netip);
 		if (typeof netmask != 'number') netmask = this.mask2bits(netmask);
 		var bcastdec;
 		if (netmask < 32) {
-			var hostdec = this.not(this.mask2dec(this.maskbits),32);
-			var ipdec = this.ip2dec(this.ipaddress);
-			bcastdec = this.or(ipdec,hostdec);
+			var hostdec = this.not(this.mask2dec(netmask),32);
+			bcastdec = this.or(netip,hostdec);
 		}
 		return bcastdec;
 	} catch (e) {
@@ -418,6 +436,51 @@ JsSubnet.prototype.getUsable = function (netip,netmask)
 		if (typeof e == "string") e = "getUsable(" + [].slice.call(arguments).join(',') + "): " + e;
 		throw e;
 	}
+}
+
+JsSubnet.prototype.getHostBits = function(ip,mxbit) 
+{
+	var ret = 0;
+	if (!mxbit) mxbit=32;
+	for(var i = 0; i < mxbit; i++) {
+		if ((this.and(ip,Math.pow(2,i) - 1) == 0)) ret = i + 1;
+	}
+	return ret;
+}
+
+JsSubnet.prototype.innerCIDRBuild = function (ip1,ip2,netlist,maxhostbits)
+{
+	if (ip1 > ip2) return;
+	if (ip1 == ip2) {
+		netlist.push(this.dec2ip(ip1) + "/32");
+	} else {
+		var netbits = (32 - this.getHostBits(ip1,maxhostbits));
+		var netaddr = this.getNetDec(ip1,netbits);
+		var bcast = this.getBroadcastDec(ip1,netbits);
+		while (((netaddr < ip1) || (bcast > ip2)) && (netbits < 32)) {
+			netbits += 1;
+			netaddr = this.getNetDec(ip1,netbits);
+			bcast = this.getBroadcastDec(ip1,netbits);
+		}
+		console.log(ip1,ip2,bcast,netaddr,netbits);
+		if (netbits == 32) bcast = ip1;
+		netlist.push(this.dec2ip(netaddr) + "/" + netbits);
+		this.innerCIDRBuild(bcast + 1, ip2,netlist,maxhostbits);
+	}
+}
+
+JsSubnet.prototype.getCIDRList = function(ip1,ip2)
+{
+	var maxhostbits = Math.floor(Math.log(this.xor(ip1,ip2))/Math.log(2)) + 1;
+	var netlist = Array();
+
+	this.innerCIDRBuild(ip1,ip2,netlist,maxhostbits);
+	return netlist.join(",");
+}
+
+JsSubnet.prototype.updateCIDRList = function()
+{
+	this.objlist['cidrlist'].innerHTML = this.getCIDRList(this.ip2dec(this.getVal('cidrstartip')), this.ip2dec(this.getVal('cidrendip'))).replace(",","\n","g");
 }
 
 JsSubnet.prototype.updateSubnet = function ()
@@ -489,70 +552,102 @@ JsSubnet.prototype.togglePanel = function (el,cls)
 {
 	if ('className' in this.panel) {
 		var clsregex = new RegExp("(^|\\s)" + cls + "(\\s|$)");
-		console.log(this.panel.className);
-		console.log(clsregex);
-		console.log(clsregex.exec(this.panel.className));
 		if (clsregex.exec(this.panel.className)) {
-			console.log("remove it");
 			this.panel.className = this.panel.className.replace(clsregex,"");
 			if(el) el.innerHTML = "-";
 		} else {
-			console.log("add it");
 			this.panel.className = this.panel.className + " " + cls;
 			if (el) el.innerHTML = "+";
 		}	
 	}
 }
 
+JsSubnet.prototype.buildSubnetPanel = function(options)
+{
+	if (this.objlist['ip'] == null || this.objlist['mask'] == null) {
+		var inputs = this.makeElement('div','JsSubnet_inputs','JsSubnet');
+
+		if (this.objlist['ip'] == null) {
+			var dv = this.makeElement('div','JsSubnet_output_ip_lbl','JsSubnet JsSubnet_label',{innerHTML:this.objlabels['ip'] } );
+			this.objlist['ip'] = this.makeElement('input','JsSubnet_input_ip','JsSubnet',{type:'text',maxlength:19});
+			dv.appendChild(this.objlist['ip']);
+			inputs.appendChild(dv);
+		}
+		if (this.objlist['mask'] == null) {
+			var dv = this.makeElement('div','JsSubnet_output_mask_lbl','JsSubnet JsSubnet_label',{innerHTML:this.objlabels['mask'] } );
+			this.objlist['mask'] = this.makeElement('select','JsSubnet_input_mask','JsSubnet');
+			for (var i=32; i>=0; i--) { 
+				var maskopt = this.makeElement('option','JsSubnet_input_mask_' + i,'JsSubnet',{value:i,innerHTML:this.dec2ip(this.mask2dec(i))});
+				this.objlist['mask'].appendChild(maskopt);
+			}
+			dv.appendChild(this.objlist['mask']);
+			inputs.appendChild(dv); 
+		}
+		this.panel.appendChild(inputs);
+	}
+	var thisinst = this;
+	if (this.isHTML(this.objlist['ip'])) this.panel._addEventListener(this.objlist['ip'],'change',function() {thisinst.updateSubnet();});
+	if (this.isHTML(this.objlist['mask'])) this.panel._addEventListener(this.objlist['mask'],'change',function() {thisinst.updateSubnet();});
+
+	var outputs = this.makeElement('div','JsSubnet_outputs','JsSubnet');
+
+	for (var item in this.objlist) {
+		if (!item.match(/^ip$|^mask$|^cidr/) && this.objlist[item] == null) {
+			if (this.isHTML(this.objlist[item] = this.makeElement('span','JsSubnet_output_'+item,'JsSubnet'))) {
+				var dv = this.makeElement('div','JsSubnet_output_' + item + '_lbl','JsSubnet JsSubnet_label',{innerHTML:this.objlabels[item] } );
+				dv.appendChild(this.objlist[item]);
+				outputs.appendChild(dv);
+			}
+		}
+	}
+	this.panel.appendChild(outputs);
+}
+
+JsSubnet.prototype.buildCIDRPanel = function(options)
+{
+	if (this.objlist['cidrstartip'] == null) {
+		var dv = this.makeElement('div','JsSubnet_input_ip1_lbl','JsSubnet JsSubnet_cidr_label',{innerHTML:this.objlabels['cidrstartip'] } );
+		this.objlist['cidrstartip'] = this.makeElement('input','JsSubnet_input_ip1','JsSubnet',{type:'text',maxlength:19});
+		dv.appendChild(this.objlist['cidrstartip']);
+		this.panel.appendChild(dv);
+	}
+	if (this.objlist['cidrendip'] == null) {
+		var dv = this.makeElement('div','JsSubnet_input_ip2_lbl','JsSubnet JsSubnet_cidr_label',{innerHTML:this.objlabels['cidrendip'] } );
+		this.objlist['cidrendip'] = this.makeElement('input','JsSubnet_input_ip2','JsSubnet',{type:'text',maxlength:19});
+		dv.appendChild(this.objlist['cidrendip']);
+		this.panel.appendChild(dv);
+	}
+	if (this.objlist['cidrlist'] == null) {
+		var dv = this.makeElement('div','JsSubnet_output_lbl','JsSubnet JsSubnet_cidr_label',{innerHTML:this.objlabels['cidrlist'] } );
+		this.objlist['cidrlist'] = this.makeElement('textarea','JsSubnet_input_cidrlist','JsSubnet',{type:'text',maxlength:19});
+		dv.appendChild(this.objlist['cidrlist']);
+		this.panel.appendChild(dv);
+	}
+	var thisinst = this;
+	if (this.isHTML(this.objlist['cidrstartip'])) this.panel._addEventListener(this.objlist['cidrstartip'],'change',function() {thisinst.updateCIDRList();});
+	if (this.isHTML(this.objlist['cidrendip'])) this.panel._addEventListener(this.objlist['cidrendip'],'change',function() {thisinst.updateCIDRList();});
+}
+
 JsSubnet.prototype.buildPanel = function (options)
 {    
 	if (!options) options = {};
 	if (this.panel == null) {
-		var thisinst = this;
-		this.panel = new JsPanel();
+		this.panel = new JsPanel(this.options);
 
 		this.panel.buildPanel(options['left'], options['top'], options['height'], options['width']);
-
-		if (this.objlist['ip'] == null || this.objlist['mask'] == null) {
-			var inputs = this.makeElement('div','JsSubnet_inputs','JsSubnet');
-
-			if (this.objlist['ip'] == null) {
-				var dv = this.makeElement('div','JsSubnet_output_ip_lbl','JsSubnet JsSubnet_label',{innerHTML:this.objlabels['ip'] } );
-				this.objlist['ip'] = this.makeElement('input','JsSubnet_input_ip','JsSubnet',{type:'text',maxlength:19});
-				dv.appendChild(this.objlist['ip']);
-				inputs.appendChild(dv);
-			}
-			if (this.objlist['mask'] == null) {
-				var dv = this.makeElement('div','JsSubnet_output_mask_lbl','JsSubnet JsSubnet_label',{innerHTML:this.objlabels['mask'] } );
-				this.objlist['mask'] = this.makeElement('select','JsSubnet_input_mask','JsSubnet');
-				for (var i=32; i>=0; i--) { 
-					var maskopt = this.makeElement('option','JsSubnet_input_mask_' + i,'JsSubnet',{value:i,innerHTML:this.dec2ip(this.mask2dec(i))});
-					this.objlist['mask'].appendChild(maskopt);
-				}
-				dv.appendChild(this.objlist['mask']);
-				inputs.appendChild(dv); 
-			}
-			this.panel.appendChild(inputs);
+		console.log(options);
+		if (options['type'] == 'CIDR') {
+			this.buildCIDRPanel(options);
+		} else {
+			this.buildSubnetPanel(options);
 		}
-	if (this.isHTML(this.objlist['ip'])) this.panel._addEventListener(this.objlist['ip'],'change',function() {thisinst.updateSubnet();});
-	if (this.isHTML(this.objlist['mask'])) this.panel._addEventListener(this.objlist['mask'],'change',function() {thisinst.updateSubnet();});
-
-			var outputs = this.makeElement('div','JsSubnet_outputs','JsSubnet');
-
-			for (var item in this.objlist) {
-				if (item != 'ip' && item != 'mask' && this.objlist[item] == null) {
-					if (this.isHTML(this.objlist[item] = this.makeElement('span','JsSubnet_output_'+item,'JsSubnet'))) {
-						var dv = this.makeElement('div','JsSubnet_output_' + item + '_lbl','JsSubnet JsSubnet_label',{innerHTML:this.objlabels[item] } );
-						dv.appendChild(this.objlist[item]);
-						outputs.appendChild(dv);
-					}
-				}
-			}
-			this.panel.appendChild(outputs);
-		//document.getElementsByTagName('head')[0].appendChild(this.makeElement('link','JsSubnet_link',null,{type:'text/css',href:'JsSubnet.css',rel:'stylesheet'}));
 	}
 }
 
+JsSubnet.prototype.ready = function()
+{
+	return (typeof JsPanel == "function");
+}
 
 //IE doesn't support __noSuchMethod__ so one at a time
 JsSubnet.prototype.getUnique = function() { return this.panel.getUnique.apply(this.panel,arguments); }
