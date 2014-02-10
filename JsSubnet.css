@@ -21,7 +21,7 @@ div.JsSubnet_cidr_label {
 }
 
 textarea {
-	whitespace: nowrap;
+	whitespace: pre;
 	word-wrap: normal;
 	width: 100%;
 }

@@ -3,7 +3,7 @@ if (typeof JsPanel == "undefined") {
 	var head = document.getElementsByTagName('head')[0];
 	var script = document.createElement('script');
 	script.type = 'text/javascript';
-	script.src = 'JsPanel.js';
+	script.src = 'https://raw2.github.com/n00k/JsPanel/master/JsPanel.js';
 	head.appendChild(script);
 }
 
@@ -462,7 +462,6 @@ JsSubnet.prototype.innerCIDRBuild = function (ip1,ip2,netlist,maxhostbits)
 			netaddr = this.getNetDec(ip1,netbits);
 			bcast = this.getBroadcastDec(ip1,netbits);
 		}
-		console.log(ip1,ip2,bcast,netaddr,netbits);
 		if (netbits == 32) bcast = ip1;
 		netlist.push(this.dec2ip(netaddr) + "/" + netbits);
 		this.innerCIDRBuild(bcast + 1, ip2,netlist,maxhostbits);
@@ -480,7 +479,13 @@ JsSubnet.prototype.getCIDRList = function(ip1,ip2)
 
 JsSubnet.prototype.updateCIDRList = function()
 {
-	this.objlist['cidrlist'].innerHTML = this.getCIDRList(this.ip2dec(this.getVal('cidrstartip')), this.ip2dec(this.getVal('cidrendip'))).replace(",","\n","g");
+	var start = this.getVal('cidrstartip');
+	var stop = this.getVal('cidrendip');
+	if (start && stop && start.match(/^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}/) && stop.match(/^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}/)) {
+		this.objlist['cidrlist'].innerHTML = this.getCIDRList(this.ip2dec(this.getVal('cidrstartip')), this.ip2dec(this.getVal('cidrendip'))).replace(/,/g,"\r\n");
+		this.objlist['cidrlist'].style.height = (this.objlist['cidrlist'].clientHeight + this.panel.spareHeight()) + 'px';
+		this.objlist['cidrlist'].style.width = '100%';
+	}
 }
 
 JsSubnet.prototype.updateSubnet = function ()
@@ -520,11 +525,13 @@ JsSubnet.prototype.makeElement = function (tag, id, cssclass, attrs) {
 	var newel = document.createElement(tag);
 	newel.id = id;
 	if (cssclass != null) newel.className = cssclass;
+	if (tag == 'textarea') console.log(attrs);
 	if (typeof attrs == "object") {
 		for (var key in attrs) {
 			newel[key] = attrs[key];
 		}
 	}
+	if (tag == 'textarea') console.log(newel);
 	return newel;
 }
 
@@ -619,8 +626,10 @@ JsSubnet.prototype.buildCIDRPanel = function(options)
 	}
 	if (this.objlist['cidrlist'] == null) {
 		var dv = this.makeElement('div','JsSubnet_output_lbl','JsSubnet JsSubnet_cidr_label',{innerHTML:this.objlabels['cidrlist'] } );
-		this.objlist['cidrlist'] = this.makeElement('textarea','JsSubnet_input_cidrlist','JsSubnet',{type:'text',maxlength:19});
-		dv.appendChild(this.objlist['cidrlist']);
+		var pr = document.createElement('pre');
+		this.objlist['cidrlist'] = this.makeElement('textarea','JsSubnet_input_cidrlist','JsSubnet',{readOnly: 'readonly',junk:'test'});
+		pr.appendChild(this.objlist['cidrlist']);
+		dv.appendChild(pr);
 		this.panel.appendChild(dv);
 	}
 	var thisinst = this;
@@ -635,7 +644,6 @@ JsSubnet.prototype.buildPanel = function (options)
 		this.panel = new JsPanel(this.options);
 
 		this.panel.buildPanel(options['left'], options['top'], options['height'], options['width']);
-		console.log(options);
 		if (options['type'] == 'CIDR') {
 			this.buildCIDRPanel(options);
 		} else {
