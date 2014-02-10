@@ -3,7 +3,7 @@ if (typeof JsPanel == "undefined") {
 	var head = document.getElementsByTagName('head')[0];
 	var script = document.createElement('script');
 	script.type = 'text/javascript';
-	script.src = 'JsPanel.js';
+	script.src = 'https://raw2.github.com/n00k/JsPanel/master/JsPanel.js';
 	head.appendChild(script);
 }
 
