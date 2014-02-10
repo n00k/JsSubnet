@@ -1,0 +1,27 @@
+div#JsSubnet_panel {
+	border: 2px solid black;
+	padding: 1px;
+}
+
+div#JsSubnet_panel.collapse div {
+	display: none;
+}
+
+div.JsSubnet div {
+	border: 1px solid black;
+	width: 100%;
+}
+
+div.JsSubnet_label {
+	text-transform: capitalize;
+}
+
+div.JsSubnet_cidr_label {
+	width: 100%;
+}
+
+textarea {
+	whitespace: nowrap;
+	word-wrap: normal;
+	width: 100%;
+}
