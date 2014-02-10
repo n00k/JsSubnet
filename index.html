@@ -2,42 +2,120 @@
 <html>
 	<head>
 		<title>JsSubnet Test</title>
-		<script type='text/javascript' src='JsPanel.js'></script>
+		<!--		<script type='text/javascript' src='JsPanel.js'></script>-->
 		<script type='text/javascript' src='JsSubnet.js'></script>
-	</head>
-	<body>
-		<div id='debugout'>--</div>
-		<button type='button' onclick="sub.setTheme('aqua');">Aqua</button>
-		<button type='button' onclick="sub.setTheme('blue');">Blue</button>
-		<button type='button' onclick="sub.setTheme('greenback');">Green</button>
-		<button type='button' onclick="sub.setTheme('maroon');">Maroon</button>
-		<button type='button' onclick="sub.setTheme('purple');">Purple</button>
-		<button type='button' onclick='sub.show();'>Show Panel</button>
-		<hr>
-		<button type='button' onclick="sub2.setTheme('aqua');">Aqua</button>
-		<button type='button' onclick="sub2.setTheme('blue');">Blue</button>
-		<button type='button' onclick="sub2.setTheme('greenback');">Green</button>
-		<button type='button' onclick="sub2.setTheme('maroon');">Maroon</button>
-		<button type='button' onclick="sub2.setTheme('purple');">Purple</button>
-		<button type='button' onclick='sub2.show();'>Show Panel</button>
-		<br><input type='text' id='Ip Address' />
-		<br><select id='subnet_mask'>
-			<option id="JsSubnet_input_mask_32" class="JsSubnet" value="32">255.255.255.255</option><option id="JsSubnet_input_mask_31" class="JsSubnet" value="31">255.255.255.254</option><option id="JsSubnet_input_mask_30" class="JsSubnet" value="30">255.255.255.252</option><option id="JsSubnet_input_mask_29" class="JsSubnet" value="29">255.255.255.248</option><option id="JsSubnet_input_mask_28" class="JsSubnet" value="28">255.255.255.240</option><option id="JsSubnet_input_mask_27" class="JsSubnet" value="27">255.255.255.224</option><option id="JsSubnet_input_mask_26" class="JsSubnet" value="26">255.255.255.192</option><option id="JsSubnet_input_mask_25" class="JsSubnet" value="25">255.255.255.128</option><option id="JsSubnet_input_mask_24" class="JsSubnet" value="24">255.255.255.0</option><option id="JsSubnet_input_mask_23" class="JsSubnet" value="23">255.255.254.0</option><option id="JsSubnet_input_mask_22" class="JsSubnet" value="22">255.255.252.0</option><option id="JsSubnet_input_mask_21" class="JsSubnet" value="21">255.255.248.0</option><option id="JsSubnet_input_mask_20" class="JsSubnet" value="20">255.255.240.0</option><option id="JsSubnet_input_mask_19" class="JsSubnet" value="19">255.255.224.0</option><option id="JsSubnet_input_mask_18" class="JsSubnet" value="18">255.255.192.0</option><option id="JsSubnet_input_mask_17" class="JsSubnet" value="17">255.255.128.0</option><option id="JsSubnet_input_mask_16" class="JsSubnet" value="16">255.255.0.0</option><option id="JsSubnet_input_mask_15" class="JsSubnet" value="15">255.254.0.0</option><option id="JsSubnet_input_mask_14" class="JsSubnet" value="14">255.252.0.0</option><option id="JsSubnet_input_mask_13" class="JsSubnet" value="13">255.248.0.0</option><option id="JsSubnet_input_mask_12" class="JsSubnet" value="12">255.240.0.0</option><option id="JsSubnet_input_mask_11" class="JsSubnet" value="11">255.224.0.0</option><option id="JsSubnet_input_mask_10" class="JsSubnet" value="10">255.192.0.0</option><option id="JsSubnet_input_mask_9" class="JsSubnet" value="9">255.128.0.0</option><option id="JsSubnet_input_mask_8" class="JsSubnet" value="8">255.0.0.0</option><option id="JsSubnet_input_mask_7" class="JsSubnet" value="7">254.0.0.0</option><option id="JsSubnet_input_mask_6" class="JsSubnet" value="6">252.0.0.0</option><option id="JsSubnet_input_mask_5" class="JsSubnet" value="5">248.0.0.0</option><option id="JsSubnet_input_mask_4" class="JsSubnet" value="4">240.0.0.0</option><option id="JsSubnet_input_mask_3" class="JsSubnet" value="3">224.0.0.0</option><option id="JsSubnet_input_mask_2" class="JsSubnet" value="2">192.0.0.0</option><option id="JsSubnet_input_mask_1" class="JsSubnet" value="1">128.0.0.0</option><option id="JsSubnet_input_mask_0" class="JsSubnet" value="0">0.0.0.0</option>
-		</select>
-
+		<link type='text/css' href='JsSubnet.css' rel='stylesheet'>
+		<style>
+			div {
+				border: 1px solid black;
+				margin: 2px;
+				padding: 2px;
+			}
+			.title {
+				font-size: large;
+				text-align: center;
+			}
+		</style>
 		<script type='text/javascript'>
 			var sub = new JsSubnet();
-			sub.buildPanel({width:'auto',height:'auto',left:'300px',top:0});
-			sub.setTitle("embeded input");
-			sub.show();
 			var sub2 = new JsSubnet();
-			sub2.setObj('ip','Ip Address');
-			sub2.setObj('mask','subnet_mask');
-			sub2.buildPanel({width:'auto',height:'auto',left:'300px',top:0});
-			sub2.setTitle("External input");
-			sub2.show();
-			
-		</script>
-		<div id='debugout'></div>
+			var sub3 = new JsSubnet();
+			function makePanels() {
+				if (sub.ready()) {
+					sub.buildPanel({left:'400px',top:'300px'});
+					sub.setTitle("embeded input");
+					sub2.setObj('ip','Ip Address');
+					sub2.setObj('mask','subnet_mask');
+					sub2.buildPanel({left:'100px',top:'300px'});
+					sub2.setTitle("External input");
+					sub3.buildPanel({left:'250px',top:'300px',type:'CIDR'});
+					sub3.setTitle("CIDR List");
+				} else {
+					setTimeout("makePanels()",500);
+				}
+			}
+			makePanels();
+</script>
+
+	</head>
+	<body>
+		<div class='title'>This is the testing page for my JsSubnet project</div>
+		<div class='links'>Codes is hosted on my <a href='http://www.github.com'>github</a> page, <a href='http://github.com/n00k'>http://github.com/n00k</a></div>
+		<div class='text'>These panels should support moving and resizing using click-move-click, not drag</div>
+
+		<div class='text'>Also available as a <a href='JsSubnet.user.js'>user.js script</a> (experimental)</div>
+		<div class='text'>Currently testing the ability to have 2 disconnected panels</div>
+		<!--<div id='debugout'>--</div>-->
+		<div class='buttons'>
+			Embedded input panel<br/>
+			<button type='button' onclick="sub.setTheme('aqua');">Aqua</button>
+			<button type='button' onclick="sub.setTheme('blue');">Blue</button>
+			<button type='button' onclick="sub.setTheme('greenback');">Green</button>
+			<button type='button' onclick="sub.setTheme('maroon');">Maroon</button>
+			<button type='button' onclick="sub.setTheme('purple');">Purple</button>
+			<button type='button' onclick='sub.show();'>Show Panel</button><br/>
+			New Title:<input type='text' id='embedded_title'></input>
+			<button type='button' onclick='sub.setTitle(document.getElementById("embedded_title").value);'>Set Title</button>
+		</div>
+		<div class='buttons'>
+			External input panel<br/>
+			<button type='button' onclick="sub2.setTheme('aqua');">Aqua</button>
+			<button type='button' onclick="sub2.setTheme('blue');">Blue</button>
+			<button type='button' onclick="sub2.setTheme('greenback');">Green</button>
+			<button type='button' onclick="sub2.setTheme('maroon');">Maroon</button>
+			<button type='button' onclick="sub2.setTheme('purple');">Purple</button>
+			<button type='button' onclick='sub2.show();'>Show Panel</button><br/>
+			New Title:<input type='text' id='external_title'></input>
+			<button type='button' onclick='sub2.setTitle(document.getElementById("external_title").value);'>Set Title</button>
+			<br/>IP Address:<input type='text' id='Ip Address' />
+			<br/>Subnet Mask:<select id='subnet_mask'>
+				<option value="32">255.255.255.255</option>
+				<option value="31">255.255.255.254</option>
+				<option value="30">255.255.255.252</option>
+				<option value="29">255.255.255.248</option>
+				<option value="28">255.255.255.240</option>
+				<option value="27">255.255.255.224</option>
+				<option value="26">255.255.255.192</option>
+				<option value="25">255.255.255.128</option>
+				<option value="24">255.255.255.0</option>
+				<option value="23">255.255.254.0</option>
+				<option value="22">255.255.252.0</option>
+				<option value="21">255.255.248.0</option>
+				<option value="20">255.255.240.0</option>
+				<option value="19">255.255.224.0</option>
+				<option value="18">255.255.192.0</option>
+				<option value="17">255.255.128.0</option>
+				<option value="16">255.255.0.0</option>
+				<option value="15">255.254.0.0</option>
+				<option value="14">255.252.0.0</option>
+				<option value="13">255.248.0.0</option>
+				<option value="12">255.240.0.0</option>
+				<option value="11">255.224.0.0</option>
+				<option value="10">255.192.0.0</option>
+				<option value="9">255.128.0.0</option>
+				<option value="8">255.0.0.0</option>
+				<option value="7">254.0.0.0</option>
+				<option value="6">252.0.0.0</option>
+				<option value="5">248.0.0.0</option>
+				<option value="4">240.0.0.0</option>
+				<option value="3">224.0.0.0</option>
+				<option value="2">192.0.0.0</option>
+				<option value="1">128.0.0.0</option>
+				<option value="0">0.0.0.0</option>
+			</select>
+		</div>
+		<div class='buttons'>
+			CIDR List Panel<br/>
+			<button type='button' onclick="sub3.setTheme('aqua');">Aqua</button>
+			<button type='button' onclick="sub3.setTheme('blue');">Blue</button>
+			<button type='button' onclick="sub3.setTheme('greenback');">Green</button>
+			<button type='button' onclick="sub3.setTheme('maroon');">Maroon</button>
+			<button type='button' onclick="sub3.setTheme('purple');">Purple</button>
+			<button type='button' onclick='sub3.show();'>Show Panel</button><br/>
+			New Title:<input type='text' id='cidr_title'></input>
+			<button type='button' onclick='sub3.setTitle(document.getElementById("cidr_title").value);'>Set Title</button>
+		</div>
+
+
 	</body>
 </html>
